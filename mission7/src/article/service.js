@@ -160,7 +160,11 @@ export const ArticleService = {
         },
       });
     } catch (error) {
-      throw new ArticleError("게시글 목록을 불러오는데 실패했습니다.", 500);
+      console.error("Database error:", error);
+      throw new ArticleError(
+        "게시글 목록을 불러오는데 실패했습니다. " + (error.message || ""),
+        500
+      );
     }
   },
 
