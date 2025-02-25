@@ -23,12 +23,11 @@ export const ProductService = {
    */
   async getProducts(req, res) {
     try {
-      const { offset, limit, search } = req.query;
-      const products = await ProductService.findAll(
-        Number(offset),
-        Number(limit),
-        search
-      );
+      const offset = parseInt(req.query.offset) || 0;
+      const limit = parseInt(req.query.limit) || 10;
+      const search = req.query.search || "";
+
+      const products = await ProductService.findAll(offset, limit, search);
       res.json(products);
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });
@@ -42,7 +41,8 @@ export const ProductService = {
    */
   async getBestProducts(req, res) {
     try {
-      const products = await ProductService.findBest(Number(req.query.limit));
+      const limit = parseInt(req.query.limit) || 5;
+      const products = await ProductService.findBest(limit);
       res.json(products);
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });

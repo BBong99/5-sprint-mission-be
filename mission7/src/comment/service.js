@@ -23,11 +23,10 @@ export const CommentService = {
    */
   async getComments(req, res) {
     try {
-      const { offset, limit } = req.query;
-      const comments = await CommentService.findAll(
-        Number(offset),
-        Number(limit)
-      );
+      const offset = parseInt(req.query.offset) || 0;
+      const limit = parseInt(req.query.limit) || 10;
+
+      const comments = await CommentService.findAll(offset, limit);
       res.json(comments);
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });

@@ -23,12 +23,11 @@ export const ArticleService = {
    */
   async getArticles(req, res) {
     try {
-      const { offset, limit, search } = req.query;
-      const articles = await ArticleService.findAll(
-        Number(offset),
-        Number(limit),
-        search
-      );
+      const offset = parseInt(req.query.offset) || 0;
+      const limit = parseInt(req.query.limit) || 10;
+      const search = req.query.search || "";
+
+      const articles = await ArticleService.findAll(offset, limit, search);
       res.json(articles);
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });
@@ -42,7 +41,8 @@ export const ArticleService = {
    */
   async getBestArticles(req, res) {
     try {
-      const articles = await ArticleService.findBest(Number(req.query.limit));
+      const limit = parseInt(req.query.limit) || 5;
+      const articles = await ArticleService.findBest(limit);
       res.json(articles);
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });
