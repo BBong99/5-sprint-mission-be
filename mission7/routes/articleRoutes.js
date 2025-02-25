@@ -27,4 +27,10 @@ router.get("/:articleId/comments", commentController.getComments);
 // POST /api/articles/:articleId/comments - 게시글에 새 댓글 작성
 router.post("/:articleId/comments", commentController.createComment);
 
+// 베스트 게시글 목록 조회
+router.get("/best", articleController.getBestArticles);
+
+// 게시글 좋아요 토글
+router.patch("/:id/like", articleController.toggleLike);
+
 export default router;

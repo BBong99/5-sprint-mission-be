@@ -84,6 +84,41 @@ const Article = {
     );
     return result.rows[0];
   },
+
+  /**
+   * 게시글의 좋아요를 토글합니다.
+   * @param {number} id - 게시글 ID
+   * @returns {Promise<Object>} 업데이트된 게시글 정보
+   */
+  async toggleLike(id) {
+    const result = await pool.query(
+      `UPDATE articles 
+       SET likes = CASE 
+         WHEN likes > 0 THEN likes - 1
+         ELSE likes + 1
+       END 
+       WHERE id = $1 
+       RETURNING *`,
+      [id]
+    );
+    return result.rows[0];
+  },
+
+  /**
+   * 베스트 게시글 목록을 조회합니다.
+   * @param {number} limit - 가져올 게시글 수
+   * @returns {Promise<Array>} 베스트 게시글 목록
+   */
+  async findBest(limit = 5) {
+    const result = await pool.query(
+      `SELECT * FROM articles 
+       WHERE likes > 0 
+       ORDER BY likes DESC, created_at DESC 
+       LIMIT $1`,
+      [limit]
+    );
+    return result.rows;
+  },
 };
 
 export default Article;
