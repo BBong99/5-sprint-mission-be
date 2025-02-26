@@ -143,7 +143,7 @@ export const ArticleService = {
    * @returns {Promise<Object>} 게시글 목록과 페이지네이션 정보
    * @throws {ArticleError} 조회 실패시 에러
    */
-  async findAll(offset = 0, limit = 20, search = "", sort = "latest") {
+  async findAll(offset = 0, limit = 5, search = "", sort = "latest") {
     try {
       const where = search
         ? {
@@ -156,12 +156,19 @@ export const ArticleService = {
 
       // 정렬 조건 설정
       const orderBy =
-        sort === "likes" ? { likes: "desc" } : { createdAt: "desc" };
+        sort === "likes"
+          ? [{ likes: "desc" }, { createdAt: "desc" }]
+          : [{ createdAt: "desc" }];
 
-      // 모든 게시글 조회
+      // 전체 게시글 수 조회 (카운트 쿼리 분리)
+      const total = await prisma.article.count({ where });
+
+      // 페이지네이션된 게시글 조회
       const articles = await prisma.article.findMany({
         where,
         orderBy,
+        skip: offset,
+        take: limit,
         include: {
           author: {
             select: {
@@ -177,9 +184,16 @@ export const ArticleService = {
         },
       });
 
+      // 페이지네이션 정보 추가
       return {
         articles,
-        total: articles.length,
+        pageInfo: {
+          total,
+          totalPages: Math.ceil(total / limit),
+          currentPage: Math.floor(offset / limit) + 1,
+          hasNext: offset + limit < total,
+          hasPrev: offset > 0,
+        },
       };
     } catch (error) {
       console.error("Database error:", error);
