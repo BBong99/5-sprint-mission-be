@@ -18,17 +18,23 @@ export const ArticleService = {
 
   /**
    * 게시글 목록을 조회합니다.
-   * @param {Object} req - Express 요청 객체 (offset, limit, search 쿼리 파라미터 포함)
+   * @param {Object} req - Express 요청 객체 (page, limit, search, sort 쿼리 파라미터 포함)
    * @param {Object} res - Express 응답 객체
    */
   async getArticles(req, res) {
     try {
-      const offset = parseInt(req.query.offset) || 0;
-      const limit = parseInt(req.query.limit) || 10;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 5;
+      const offset = (page - 1) * limit;
       const search = req.query.search || "";
+      const sort = req.query.sort || "latest"; // 'latest' 또는 'likes'
 
-      const articles = await ArticleService.findAll(offset, limit, search);
-      res.json(articles);
+      if (!["latest", "likes"].includes(sort)) {
+        throw new ArticleError("유효하지 않은 정렬 기준입니다.", 400);
+      }
+
+      const result = await ArticleService.findAll(offset, limit, search, sort);
+      res.json(result);
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });
     }
@@ -133,23 +139,29 @@ export const ArticleService = {
    * @param {number} offset - 건너뛸 게시글 수
    * @param {number} limit - 가져올 게시글 수
    * @param {string} search - 검색어 (제목, 내용에서 검색)
-   * @returns {Promise<Array>} 게시글 목록
+   * @param {string} sort - 정렬 기준 (latest, likes)
+   * @returns {Promise<Object>} 게시글 목록과 페이지네이션 정보
    * @throws {ArticleError} 조회 실패시 에러
    */
-  async findAll(offset = 0, limit = 10, search = "") {
+  async findAll(offset = 0, limit = 20, search = "", sort = "latest") {
     try {
-      return await prisma.article.findMany({
-        where: search
-          ? {
-              OR: [
-                { title: { contains: search, mode: "insensitive" } },
-                { content: { contains: search, mode: "insensitive" } },
-              ],
-            }
-          : undefined,
-        orderBy: { createdAt: "desc" },
-        skip: offset,
-        take: limit,
+      const where = search
+        ? {
+            OR: [
+              { title: { contains: search, mode: "insensitive" } },
+              { content: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : undefined;
+
+      // 정렬 조건 설정
+      const orderBy =
+        sort === "likes" ? { likes: "desc" } : { createdAt: "desc" };
+
+      // 모든 게시글 조회
+      const articles = await prisma.article.findMany({
+        where,
+        orderBy,
         include: {
           author: {
             select: {
@@ -157,8 +169,18 @@ export const ArticleService = {
               nickname: true,
             },
           },
+          _count: {
+            select: {
+              comments: true,
+            },
+          },
         },
       });
+
+      return {
+        articles,
+        total: articles.length,
+      };
     } catch (error) {
       console.error("Database error:", error);
       throw new ArticleError(
