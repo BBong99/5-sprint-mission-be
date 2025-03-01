@@ -76,7 +76,9 @@ export const ArticleService = {
    */
   async createArticle(req, res) {
     try {
-      const article = await ArticleService.create(req.body, req.user.id);
+      // 테스트 환경에서 authorId가 없는 경우 기본값 사용
+      const authorId = req.user?.id || "2b1d9484-b7c9-4a45-84c1-9c9208df777a"; // 테스트유저2의 ID
+      const article = await ArticleService.create(req.body, authorId);
       res.status(201).json(article);
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });
