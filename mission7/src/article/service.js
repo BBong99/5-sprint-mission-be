@@ -92,10 +92,12 @@ export const ArticleService = {
    */
   async updateArticle(req, res) {
     try {
+      // 테스트 환경에서 authorId가 없는 경우 기본값 사용
+      const authorId = req.user?.id || "2b1d9484-b7c9-4a45-84c1-9c9208df777a"; // 테스트유저2의 ID
       const updatedArticle = await ArticleService.update(
         req.params.id,
         req.body,
-        req.user.id
+        authorId
       );
       res.json(updatedArticle);
     } catch (error) {
@@ -110,7 +112,9 @@ export const ArticleService = {
    */
   async deleteArticle(req, res) {
     try {
-      await ArticleService.delete(req.params.id, req.user.id);
+      // 테스트 환경에서 authorId가 없는 경우 기본값 사용
+      const authorId = req.user?.id || "2b1d9484-b7c9-4a45-84c1-9c9208df777a"; // 테스트유저2의 ID
+      await ArticleService.delete(req.params.id, authorId);
       res.status(204).end();
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });

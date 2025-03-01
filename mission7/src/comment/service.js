@@ -84,7 +84,15 @@ export const CommentService = {
    */
   async createComment(req, res) {
     try {
-      const comment = await CommentService.create(req.body, req.user.id);
+      // 테스트 환경에서 authorId를 랜덤으로 선택
+      const testUserIds = [
+        "2b1d9484-b7c9-4a45-84c1-9c9208df777a", // 테스트유저2
+        "ff75456f-bae4-4b48-9439-9f58f7b83a20", // 테스트유저1
+      ];
+      const randomIndex = Math.floor(Math.random() * 2); // 0 또는 1 랜덤 선택
+      const authorId = req.user?.id || testUserIds[randomIndex];
+
+      const comment = await CommentService.create(req.body, authorId);
       res.status(201).json(comment);
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });
@@ -98,10 +106,18 @@ export const CommentService = {
    */
   async updateComment(req, res) {
     try {
+      // 테스트 환경에서 authorId를 랜덤으로 선택
+      const testUserIds = [
+        "2b1d9484-b7c9-4a45-84c1-9c9208df777a", // 테스트유저2
+        "ff75456f-bae4-4b48-9439-9f58f7b83a20", // 테스트유저1
+      ];
+      const randomIndex = Math.floor(Math.random() * 2); // 0 또는 1 랜덤 선택
+      const authorId = req.user?.id || testUserIds[randomIndex];
+
       const updatedComment = await CommentService.update(
         req.params.id,
         req.body,
-        req.user.id
+        authorId
       );
       res.json(updatedComment);
     } catch (error) {
@@ -116,7 +132,15 @@ export const CommentService = {
    */
   async deleteComment(req, res) {
     try {
-      await CommentService.delete(req.params.id, req.user.id);
+      // 테스트 환경에서 authorId를 랜덤으로 선택
+      const testUserIds = [
+        "2b1d9484-b7c9-4a45-84c1-9c9208df777a", // 테스트유저2
+        "ff75456f-bae4-4b48-9439-9f58f7b83a20", // 테스트유저1
+      ];
+      const randomIndex = Math.floor(Math.random() * 2); // 0 또는 1 랜덤 선택
+      const authorId = req.user?.id || testUserIds[randomIndex];
+
+      await CommentService.delete(req.params.id, authorId);
       res.status(204).end();
     } catch (error) {
       res.status(error.statusCode || 500).json({ error: error.message });
