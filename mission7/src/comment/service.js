@@ -303,17 +303,13 @@ export const CommentService = {
    * 댓글을 수정하는 내부 메서드
    * @param {string} id - 댓글 ID
    * @param {Object} commentData - 수정할 댓글 데이터
-   * @param {string} authorId - 작성자 ID (권한 확인용)
+   * @param {string} authorId - 작성자 ID (사용되지 않음)
    * @returns {Promise<Object>} 수정된 댓글 정보
-   * @throws {CommentError} 수정 권한이 없거나 실패시 에러
+   * @throws {CommentError} 수정 실패시 에러
    */
   async update(id, commentData, authorId) {
     try {
       const comment = await this.findById(id);
-
-      if (comment.authorId !== authorId) {
-        throw new CommentError("댓글을 수정할 권한이 없습니다.", 403);
-      }
 
       return await prisma.comment.update({
         where: { id },
@@ -339,16 +335,12 @@ export const CommentService = {
   /**
    * 댓글을 삭제하는 내부 메서드
    * @param {string} id - 댓글 ID
-   * @param {string} authorId - 작성자 ID (권한 확인용)
-   * @throws {CommentError} 삭제 권한이 없거나 실패시 에러
+   * @param {string} authorId - 작성자 ID (사용되지 않음)
+   * @throws {CommentError} 삭제 실패시 에러
    */
   async delete(id, authorId) {
     try {
       const comment = await this.findById(id);
-
-      if (comment.authorId !== authorId) {
-        throw new CommentError("댓글을 삭제할 권한이 없습니다.", 403);
-      }
 
       await prisma.comment.delete({ where: { id } });
     } catch (error) {
