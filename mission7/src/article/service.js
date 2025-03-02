@@ -360,7 +360,7 @@ export const ArticleService = {
       return await prisma.article.update({
         where: { id },
         data: {
-          likes: article.likes > 0 ? article.likes - 1 : article.likes + 1,
+          likes: article.likes + 1, // 항상 +1만 수행
         },
       });
     } catch (error) {
