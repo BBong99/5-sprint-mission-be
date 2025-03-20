@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+model User {
+  id               String            @id @default(uuid()) @db.Uuid
+  email            String            @unique
+  password         String
+  nickname         String            @db.VarChar(30)
+  image            String? // 프로필 이미지 URL
+  products         Product[] // 사용자가 등록한 상품들
+  articles         Article[] // 사용자가 작성한 게시글들
+  comments         Comment[] // 사용자가 작성한 댓글들
+  productFavorites ProductFavorite[] // 사용자가 찜한 상품들
+  articleLikes     ArticleLike[] // 사용자가 좋아요한 게시글들
+  refreshToken     String? // 리프레시 토큰
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Product {
+  id          String            @id @default(uuid()) @db.Uuid
+  name        String            @db.VarChar(255)
+  description String
+  price       Int
+  tags        String[]
+  images      String[]          @default([]) // 상품 이미지 URL 배열 (기본값 빈 배열)
+  likes       Int               @default(0)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at")
+  comments    Comment[] // 상품에 달린 댓글들
+  author      User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId    String            @map("author_id") @db.Uuid
+  favoritedBy ProductFavorite[] // 이 상품을 찜한 관계
+
+  @@map("products")
+}
+
+model Article {
+  id        String        @id @default(uuid()) @db.Uuid
+  title     String        @db.VarChar(255)
+  content   String
+  imageUrl  String?       @map("image_url") // 기존 이미지 필드 유지
+  images    String[]      @default([]) // 게시글 이미지 URL 배열 (기본값 빈 배열)
+  likes     Int           @default(0)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @default(now()) @updatedAt @map("updated_at")
+  comments  Comment[] // 게시글에 달린 댓글들
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String        @map("author_id") @db.Uuid
+  likedBy   ArticleLike[] // 이 게시글을 좋아요한 관계
+
+  @@map("articles")
+}
+
+model Comment {
+  id        String   @id @default(uuid()) @db.Uuid
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String?  @map("article_id") @db.Uuid
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String?  @map("product_id") @db.Uuid
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String   @map("author_id") @db.Uuid
+
+  @@map("comments")
+}
+
+// 상품 찜하기 관계 모델
+model ProductFavorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id") @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String   @map("product_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, productId])
+  @@map("product_favorites")
+}
+
+// 게시글 좋아요 관계 모델
+model ArticleLike {
+  id        String   @id @default(uuid()) @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id") @db.Uuid
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String   @map("article_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, articleId])
+  @@map("article_likes")
+}
