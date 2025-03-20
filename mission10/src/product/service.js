@@ -31,7 +31,7 @@ export const ProductService = {
       const offset = parseInt(req.query.offset) || 0;
       const limit = parseInt(req.query.limit) || 10;
       const search = req.query.search || "";
-      const sort = req.query.sort || "recent"; // recent(최신순) 또는 likes(좋아요순)
+      const sort = req.query.sort || "recent"; // recent(최신순) 또는 favorites(찜하기순)
 
       const products = await ProductService.findAll(
         offset,
@@ -189,7 +189,7 @@ export const ProductService = {
    * @param {number} offset - 건너뛸 상품 수
    * @param {number} limit - 가져올 상품 수
    * @param {string} search - 검색어 (이름, 설명에서 검색)
-   * @param {string} sort - 정렬 방식 (recent: 최신순, likes: 좋아요순)
+   * @param {string} sort - 정렬 방식 (recent: 최신순, favorites: 찜하기순)
    * @returns {Promise<Array>} 상품 목록
    * @throws {AppError} 조회 실패시 에러
    */
@@ -197,8 +197,8 @@ export const ProductService = {
     try {
       // 정렬 방식 설정
       const orderBy =
-        sort === "likes"
-          ? [{ likes: "desc" }, { createdAt: "desc" }]
+        sort === "favorites"
+          ? [{ favorites: "desc" }, { createdAt: "desc" }]
           : { createdAt: "desc" };
 
       return await prisma.product.findMany({
@@ -408,16 +408,16 @@ export const ProductService = {
   /**
    * 베스트 상품을 조회하는 내부 메서드
    * @param {number} limit - 가져올 상품 수
-   * @returns {Promise<Array>} 좋아요 순으로 정렬된 상품 목록
+   * @returns {Promise<Array>} 찜하기 순으로 정렬된 상품 목록
    * @throws {AppError} 조회 실패시 에러
    */
   async findBest(limit = 4) {
     try {
       return await prisma.product.findMany({
         where: {
-          likes: { gt: 0 },
+          favorites: { gt: 0 },
         },
-        orderBy: [{ likes: "desc" }, { createdAt: "desc" }],
+        orderBy: [{ favorites: "desc" }, { createdAt: "desc" }],
         take: limit,
         include: {
           author: {
@@ -466,10 +466,10 @@ export const ProductService = {
           },
         });
 
-        // 상품의 좋아요 수 증가
+        // 상품의 찜하기 수 증가
         const updatedProduct = await tx.product.update({
           where: { id: productId },
-          data: { likes: { increment: 1 } },
+          data: { favorites: { increment: 1 } },
           include: {
             author: {
               select: {
@@ -523,10 +523,10 @@ export const ProductService = {
           },
         });
 
-        // 상품의 좋아요 수 감소
+        // 상품의 찜하기 수 감소
         const updatedProduct = await tx.product.update({
           where: { id: productId },
-          data: { likes: { decrement: 1 } },
+          data: { favorites: { decrement: 1 } },
           include: {
             author: {
               select: {

@@ -35,7 +35,7 @@ model Product {
   price       Int
   tags        String[]
   images      String[]          @default([]) // 상품 이미지 URL 배열 (기본값 빈 배열)
-  likes       Int               @default(0)
+  favorites   Int               @default(0) // 찜하기 수
   createdAt   DateTime          @default(now()) @map("created_at")
   updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at")
   comments    Comment[] // 상품에 달린 댓글들

@@ -55,9 +55,9 @@ const router = express.Router();
  *           items:
  *             type: string
  *           description: 상품 이미지 URL 배열
- *         likes:
+ *         favorites:
  *           type: integer
- *           description: 좋아요 수
+ *           description: 찜하기 수
  *         isFavorited:
  *           type: boolean
  *           description: 현재 사용자가 상품을 찜했는지 여부
@@ -108,8 +108,8 @@ const router = express.Router();
  *         name: sort
  *         schema:
  *           type: string
- *           enum: [recent, likes]
- *         description: 정렬 방식 (recent - 최신순, likes - 좋아요순)
+ *           enum: [recent, favorites]
+ *         description: 정렬 방식 (recent - 최신순, favorites - 찜하기순)
  *     responses:
  *       200:
  *         description: 상품 목록 조회 성공
@@ -126,7 +126,7 @@ router.get("/", validatePagination, ProductService.getProducts);
  * @swagger
  * /api/products/best:
  *   get:
- *     summary: 베스트 상품 목록 조회 (좋아요 많은 순)
+ *     summary: 베스트 상품 목록 조회 (찜하기 많은 순)
  *     tags: [Products]
  *     parameters:
  *       - in: query
